@@ -18,16 +18,17 @@ class Net(nn.Module):
         self.bn3 = nn.BatchNorm2d(64)
         self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn4 = nn.BatchNorm2d(128)
-        self.fc1 = nn.Linear(128 * 8 * 8, 512)
+        self.fc1 = nn.Linear(128 * 16 * 16, 512)
         self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, 2)
+        self.fc3 = nn.Linear(256, 100)
 
     def forward(self, x):
         x = self.bn1(F.relu(self.conv1(x)))
         x = F.max_pool2d(self.bn2(F.relu(self.conv2(x))), 2)
         x = self.bn3(F.relu(self.conv3(x)))
         x = F.max_pool2d(self.bn4(F.relu(self.conv4(x))), 2)
-        x = x.view(-1, 32 * 8 * 8)
+        # print(x.shape)
+        x = x.view(-1, 128 * 16 * 16)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -39,7 +40,7 @@ transform = transforms.Compose([transforms.Resize((64, 64)),
 train_dataset = ImageFolder('./face_classification_100/train_sample', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 dev_dataset = ImageFolder('./face_classification_100/dev_sample', transform=transform)
-dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=True)
+dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
 test_dataset = ImageFolder('./face_classification_100/test_sample', transform=transform)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -54,6 +55,8 @@ for epoch in range(10):  # 多次循环数据集
     for i, data in enumerate(train_loader, 0):
         # 获取输入数据
         inputs, labels = data
+        # print(inputs.shape)
+        # print(labels.shape)
 
         # 梯度清零
         optimizer.zero_grad()
