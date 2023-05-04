@@ -6,11 +6,8 @@ import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
-# import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-# devicee = torch.device("cuda")
 # devicee = torch.device("cpu")
-devicee = torch.device("cuda:0")
+devicee = torch.device("cuda")
 
 # 定义卷积神经网络模型
 class Net(nn.Module):
