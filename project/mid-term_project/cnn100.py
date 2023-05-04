@@ -60,10 +60,10 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 # 定义损失函数和优化器
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
-optimizer = optim.Adam(net.parameters(), lr=0.001)
+optimizer = optim.SGD(net.parameters(), lr=0.001)
 
 # 训练模型
-for epoch in range(10):  # 多次循环数据集
+for epoch in range(200):  # 多次循环数据集
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # 获取输入数据
