@@ -32,7 +32,7 @@ class Net(nn.Module):
         self.bn8 = nn.BatchNorm2d(2048)
         self.fc1 = nn.Linear(2048 * 4 * 4, 2048)
         self.fc2 = nn.Linear(2048, 1024)
-        self.fc3 = nn.Linear(1024, 100)
+        self.fc3 = nn.Linear(1024, 500)
 
     def forward(self, x):
         x = self.bn1(F.relu(self.conv1(x)))
@@ -53,11 +53,11 @@ class Net(nn.Module):
 # 加载数据集
 transform = transforms.Compose([transforms.Resize((64, 64)),
                                 transforms.ToTensor()])
-train_dataset = ImageFolder('./face_classification_100/train_sample', transform=transform)
+train_dataset = ImageFolder('./face_classification_500/train_sample', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-dev_dataset = ImageFolder('./face_classification_100/dev_sample', transform=transform)
+dev_dataset = ImageFolder('./face_classification_500/dev_sample', transform=transform)
 dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
-test_dataset = ImageFolder('./face_classification_100/test_sample', transform=transform)
+test_dataset = ImageFolder('./face_classification_500/test_sample', transform=transform)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # 定义损失函数和优化器
