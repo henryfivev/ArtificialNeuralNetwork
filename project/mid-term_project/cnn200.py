@@ -49,8 +49,14 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
         )
         self.bn5 = nn.BatchNorm2d(1024)
-        self.fc1 = nn.Linear(1024 * 7 * 7, 4096) 
-        self.fc2 = nn.Linear(4096, 1024) 
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(1024, 4096, 3, 1, 1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+        self.bn6 = nn.BatchNorm2d(4096)
+        self.fc1 = nn.Linear(4096 * 3 * 3, 2048) 
+        self.fc2 = nn.Linear(2048, 1024) 
         self.fc3 = nn.Linear(1024, 100) 
         
 
@@ -65,6 +71,8 @@ class Net(nn.Module):
         x = self.bn4(x)
         x = self.conv5(x)
         x = self.bn5(x)
+        x = self.conv6(x)
+        x = self.bn6(x)
         print(x.shape)
         x = x.view(x.size(0), -1)   # 展平多维的卷积图层
         x = self.fc1(x)
