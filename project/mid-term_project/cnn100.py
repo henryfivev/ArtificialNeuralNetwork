@@ -51,7 +51,7 @@ class Net(nn.Module):
         return x
 
 # 加载数据集
-transform = transforms.Compose([transforms.Resize((64, 64)),
+transform = transforms.Compose([transforms.Resize((224, 224)),
                                 transforms.ToTensor()])
 train_dataset = ImageFolder('./face_classification_100/train_sample', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
