@@ -43,8 +43,8 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
         )
         self.bn4 = nn.BatchNorm2d(256)
-        self.fc1 = nn.Linear(256 * 4 * 4, 512) 
-        self.fc2 = nn.Linear(512, 128) 
+        self.fc1 = nn.Linear(256 * 16 * 16, 1024) 
+        self.fc2 = nn.Linear(1024, 128) 
         self.fc3 = nn.Linear(128, 10) 
         
     def forward(self, x):
