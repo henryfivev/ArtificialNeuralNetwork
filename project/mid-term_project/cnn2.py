@@ -43,10 +43,12 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
         )
         self.bn4 = nn.BatchNorm2d(256)
-        self.fc1 = nn.Linear(256 * 16 * 16, 1024) 
-        self.fc2 = nn.Linear(1024, 128) 
+        self.fc1 = nn.Linear(256 * 16 * 16, 4096) 
+        self.fc2 = nn.Linear(4096, 128) 
         self.fc3 = nn.Linear(128, 10) 
         
+RuntimeError: CUDA error: CUBLAS_STATUS_INVALID_VALUE when calling `cublasSgemm( handle, opa, opb, m, n, k, &alpha, a, lda, b, ldb, &beta, c, ldc)`
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
