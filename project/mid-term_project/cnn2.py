@@ -43,8 +43,8 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
         )
         self.bn4 = nn.BatchNorm2d(256)
-        self.fc1 = nn.Linear(256 * 16 * 16, 4096) 
-        self.fc2 = nn.Linear(4096, 128) 
+        self.fc1 = nn.Linear(256 * 14 * 14, 512) 
+        self.fc2 = nn.Linear(512, 128) 
         self.fc3 = nn.Linear(128, 10) 
         
 

@@ -21,32 +21,32 @@ class Net(nn.Module):
         self.bn3 = nn.BatchNorm2d(64)
         self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn4 = nn.BatchNorm2d(128)
-
-        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(256)
-        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
-        self.bn6 = nn.BatchNorm2d(512)
-        self.conv7 = nn.Conv2d(512, 1024, kernel_size=3, padding=1)
-        self.bn7 = nn.BatchNorm2d(1024)
-        self.conv8 = nn.Conv2d(1024, 2048, kernel_size=3, padding=1)
-        self.bn8 = nn.BatchNorm2d(2048)
-        self.fc1 = nn.Linear(2048 * 4 * 4, 2048)
-        self.fc2 = nn.Linear(2048, 1024)
-        self.fc3 = nn.Linear(1024, 100)
+        # self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        # self.bn5 = nn.BatchNorm2d(256)
+        # self.conv6 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
+        # self.bn6 = nn.BatchNorm2d(512)
+        # self.conv7 = nn.Conv2d(512, 1024, kernel_size=3, padding=1)
+        # self.bn7 = nn.BatchNorm2d(1024)
+        # self.conv8 = nn.Conv2d(1024, 2048, kernel_size=3, padding=1)
+        # self.bn8 = nn.BatchNorm2d(2048)
+        self.fc1 = nn.Linear(128 * 56 * 56, 256)
+        # self.fc2 = nn.Linear(2048, 1024)
+        self.fc3 = nn.Linear(256, 100)
 
     def forward(self, x):
         x = self.bn1(F.relu(self.conv1(x)))
         x = F.max_pool2d(self.bn2(F.relu(self.conv2(x))), 2)
         x = self.bn3(F.relu(self.conv3(x)))
         x = F.max_pool2d(self.bn4(F.relu(self.conv4(x))), 2)
-        x = self.bn5(F.relu(self.conv5(x)))
-        x = F.max_pool2d(self.bn6(F.relu(self.conv6(x))), 2)
-        x = self.bn7(F.relu(self.conv7(x)))
-        x = F.max_pool2d(self.bn8(F.relu(self.conv8(x))), 2)
-        # print(x.shape)
-        x = x.view(-1, 2048 * 4 * 4)
+        # x = self.bn5(F.relu(self.conv5(x)))
+        # x = F.max_pool2d(self.bn6(F.relu(self.conv6(x))), 2)
+        # x = self.bn7(F.relu(self.conv7(x)))
+        # x = F.max_pool2d(self.bn8(F.relu(self.conv8(x))), 2)
+        print(x.shape)
+        # x = x.view(-1, 128 * 4 * 4)
+        x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        # x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -67,7 +67,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001)
 train_loss = []
 
 # 训练模型
-for epoch in range(80):  # 多次循环数据集
+for epoch in range(5):  # 多次循环数据集
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # 获取输入数据
