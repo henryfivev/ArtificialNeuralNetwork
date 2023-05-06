@@ -47,7 +47,6 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(4096, 128) 
         self.fc3 = nn.Linear(128, 10) 
         
-RuntimeError: CUDA error: CUBLAS_STATUS_INVALID_VALUE when calling `cublasSgemm( handle, opa, opb, m, n, k, &alpha, a, lda, b, ldb, &beta, c, ldc)`
 
     def forward(self, x):
         x = self.conv1(x)
