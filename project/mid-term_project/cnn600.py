@@ -29,11 +29,19 @@ class Net(nn.Module):
             nn.Conv2d(512, 1024, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(1024)
         )
         self.conv6 = nn.Sequential(
-            nn.Conv2d(1024, 4096, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(4096)
+            nn.Conv2d(1024, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
         )
-        self.fc1 = nn.Linear(4096 * 3 * 3, 2048)
-        self.fc2 = nn.Linear(2048, 1024)
-        self.fc3 = nn.Linear(1024, 500)
+        # self.conv7 = nn.Sequential(
+        #     nn.Conv2d(4096, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
+        # )
+        # self.conv8 = nn.Sequential(
+        #     nn.Conv2d(8192, 16384, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(16384)
+        # )
+        # self.conv9 = nn.Sequential(
+        #     nn.Conv2d(16384, 32768, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32768)
+        # )
+        self.fc1 = nn.Linear(8192*3*3, 1024)
+        self.fc2 = nn.Linear(1024, 500)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -42,11 +50,13 @@ class Net(nn.Module):
         x = self.conv4(x)
         x = self.conv5(x)
         x = self.conv6(x)
-        print(x.shape)
+        # x = self.conv7(x)
+        # x = self.conv8(x)
+        # x = self.conv9(x)
+        # print(x.shape)
         x = x.view(x.size(0), -1)  # 展平多维的卷积图层
         x = self.fc1(x)
         x = self.fc2(x)
-        x = self.fc3(x)
         return x
 
 
@@ -66,7 +76,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.006)
 train_loss = []
 
 # 训练模型
-for epoch in range(20):  # 多次循环数据集
+for epoch in range(10):  # 多次循环数据集
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # 获取输入数据
