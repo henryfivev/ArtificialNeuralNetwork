@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 devicee = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# acc = 0.44
+
 # 定义卷积神经网络模型
 class Net(nn.Module):
     def __init__(self):
@@ -63,16 +65,17 @@ class Net(nn.Module):
 # 加载数据集
 transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
 train_dataset = ImageFolder("./face_classification_500/train_sample", transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 dev_dataset = ImageFolder("./face_classification_500/dev_sample", transform=transform)
-dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
+dev_loader = DataLoader(dev_dataset, batch_size=16, shuffle=False)
 test_dataset = ImageFolder("./face_classification_500/test_sample", transform=transform)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 # 定义损失函数和优化器
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
-optimizer = optim.SGD(net.parameters(), lr=0.006)
+optimizer = optim.SGD(net.parameters(), lr=0.01)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.7)
 train_loss = []
 
 # 训练模型
@@ -104,7 +107,7 @@ for epoch in range(10):  # 多次循环数据集
             # 每10个小批次打印一次统计信息
             print("[%d, %5d] loss: %.5f" % (epoch + 1, i + 1, running_loss / 100))
             running_loss = 0.0
-
+    scheduler.step()
     correct = 0
     total = 0
     with torch.no_grad():

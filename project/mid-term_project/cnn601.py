@@ -17,18 +17,18 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 32, 3, 1, 1,), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32)
+            nn.Conv2d(3, 32, 5, 1, 1,), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(32)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 256, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(256)
+            nn.Conv2d(32, 128, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(128)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(256, 1024, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(1024)
+            nn.Conv2d(128, 512, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(512)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(1024, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
+            nn.Conv2d(512, 1024, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(1024)
         )
-        self.fc1 = nn.Linear(8192*3*3, 1024)
+        self.fc1 = nn.Linear(1024*13*13, 1024)
         self.fc2 = nn.Linear(1024, 500)
 
     def forward(self, x):

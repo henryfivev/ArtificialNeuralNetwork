@@ -16,18 +16,18 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 1024, 3, 1, 1,), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(1024)
+            nn.Conv2d(3, 512, 3, 1, 1,), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(512)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(1024, 16384, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(16384)
+            nn.Conv2d(512, 4096, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(4096)
         )
-        self.fc1 = nn.Linear(16384*3*3, 2048)
+        self.fc1 = nn.Linear(4096*3*3, 2048)
         self.fc2 = nn.Linear(2048, 500)
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
-        # print(x.shape)
+        print(x.shape)
         x = x.view(x.size(0), -1)  # 展平多维的卷积图层
         x = self.fc1(x)
         x = self.fc2(x)

@@ -9,38 +9,43 @@ import matplotlib.pyplot as plt
 
 devicee = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# 相较于cnn601，cnn603网络层数更多，宽度更小
+
 # 定义卷积神经网络模型
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 16, 3, 1, 1,), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(16)
+            nn.Conv2d(3, 16, 5, 1, 1,), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(16)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32)
+            nn.Conv2d(16, 32, 5, 1, 1), nn.ReLU(), nn.MaxPool2d(2, 2),nn.BatchNorm2d(32)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 128, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(128)
+            nn.Conv2d(32, 64, 3, 1, 1), nn.ReLU(),nn.MaxPool2d(2),nn.BatchNorm2d(64)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(128, 512, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(512)
+            nn.Conv2d(64, 128, 3, 1, 1), nn.ReLU(),nn.MaxPool2d(2),nn.BatchNorm2d(128)
         )
         self.conv5 = nn.Sequential(
-            nn.Conv2d(512, 1024, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(1024)
+            nn.Conv2d(128, 256, 3, 1, 1,), nn.ReLU(),nn.MaxPool2d(2),nn.BatchNorm2d(256)
         )
         self.conv6 = nn.Sequential(
-            nn.Conv2d(1024, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
+            nn.Conv2d(256, 512, 3, 1, 1), nn.ReLU(),nn.MaxPool2d(2),nn.BatchNorm2d(512)
         )
-        # self.conv7 = nn.Sequential(
-        #     nn.Conv2d(4096, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
+        self.conv7 = nn.Sequential(
+            nn.Conv2d(512, 1024, 3, 1, 1), nn.ReLU(),nn.BatchNorm2d(1024)
+        )
+        self.conv8 = nn.Sequential(
+            nn.Conv2d(1024, 2048, 3, 1, 1), nn.ReLU(),nn.BatchNorm2d(2048)
+        )
+        self.conv9 = nn.Sequential(
+            nn.Conv2d(2048, 8192, 3, 1, 1), nn.ReLU(),nn.BatchNorm2d(8192)
+        )
+        # self.conv10 = nn.Sequential(
+        #     nn.Conv2d(4096, 6144, 3, 1, 1), nn.ReLU(),nn.MaxPool2d(2),nn.BatchNorm2d(8192)
         # )
-        # self.conv8 = nn.Sequential(
-        #     nn.Conv2d(8192, 16384, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(16384)
-        # )
-        # self.conv9 = nn.Sequential(
-        #     nn.Conv2d(16384, 32768, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32768)
-        # )
-        self.fc1 = nn.Linear(8192*3*3, 1024)
+        self.fc1 = nn.Linear(8192*9, 1024)
         self.fc2 = nn.Linear(1024, 500)
 
     def forward(self, x):
@@ -50,9 +55,10 @@ class Net(nn.Module):
         x = self.conv4(x)
         x = self.conv5(x)
         x = self.conv6(x)
-        # x = self.conv7(x)
-        # x = self.conv8(x)
-        # x = self.conv9(x)
+        x = self.conv7(x)
+        x = self.conv8(x)
+        x = self.conv9(x)
+        # x = self.conv10(x)
         # print(x.shape)
         x = x.view(x.size(0), -1)  # 展平多维的卷积图层
         x = self.fc1(x)
@@ -63,28 +69,27 @@ class Net(nn.Module):
 # 加载数据集
 transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
 train_dataset = ImageFolder("./face_classification_500/train_sample", transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 dev_dataset = ImageFolder("./face_classification_500/dev_sample", transform=transform)
-dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
+dev_loader = DataLoader(dev_dataset, batch_size=16, shuffle=False)
 test_dataset = ImageFolder("./face_classification_500/test_sample", transform=transform)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 # 定义损失函数和优化器
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
-optimizer = optim.SGD(net.parameters(), lr=0.006)
+optimizer = optim.SGD(net.parameters(), lr=0.01)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.7)
 train_loss = []
 
 # 训练模型
-for epoch in range(10):  # 多次循环数据集
+for epoch in range(5):  # 多次循环数据集
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # 获取输入数据
         inputs, labels = data
         inputs = inputs.to(devicee)
         labels = labels.to(devicee)
-        # print(inputs.shape)
-        # print(labels.shape)
 
         # 梯度清零
         optimizer.zero_grad()
@@ -104,7 +109,7 @@ for epoch in range(10):  # 多次循环数据集
             # 每10个小批次打印一次统计信息
             print("[%d, %5d] loss: %.5f" % (epoch + 1, i + 1, running_loss / 100))
             running_loss = 0.0
-
+    scheduler.step()
     correct = 0
     total = 0
     with torch.no_grad():
@@ -117,7 +122,6 @@ for epoch in range(10):  # 多次循环数据集
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     print("Accuracy of the network on the dev images: %d %%" % (100 * correct / total))
-
     correct = 0
     total = 0
     with torch.no_grad():
@@ -129,7 +133,6 @@ for epoch in range(10):  # 多次循环数据集
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
     print("Accuracy of the network on the test images: %d %%" % (100 * correct / total))
 
 plt.plot(train_loss)
