@@ -6,10 +6,12 @@ import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 devicee = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 53 51
+# 56 50
+# 相较于609参考网络上的架构
 
 # 定义卷积神经网络模型
 class Net(nn.Module):
@@ -17,29 +19,23 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.conv1 = nn.Sequential(
             nn.BatchNorm2d(3),
-            nn.Conv2d(3, 16, 5, 1, 1,),
+            nn.Conv2d(3, 96, 11, 4, 1,),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.BatchNorm2d(16),
+            nn.BatchNorm2d(96),
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 5, 1, 1), nn.ReLU(), nn.MaxPool2d(2), nn.BatchNorm2d(32)
+            nn.Conv2d(96, 256, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2), nn.BatchNorm2d(256)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 128, 5, 1, 1), nn.ReLU(), nn.MaxPool2d(2), nn.BatchNorm2d(128)
+            nn.Conv2d(256, 384, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2), nn.BatchNorm2d(384)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(128, 512, 3, 1, 1),
+            nn.Conv2d(384, 512, 3, 1, 1),
             nn.ReLU(),
             nn.MaxPool2d(2),
             nn.BatchNorm2d(512),
         )
-        # self.conv5 = nn.Sequential(
-        #     nn.Conv2d(512, 2048, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(2048)
-        # )
-        # self.conv6 = nn.Sequential(
-        #     nn.Conv2d(2048, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
-        # )
         # self.conv7 = nn.Sequential(
         #     nn.Conv2d(4096, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
         # )
@@ -49,8 +45,8 @@ class Net(nn.Module):
         # self.conv9 = nn.Sequential(
         #     nn.Conv2d(16384, 32768, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32768)
         # )
-        self.fc1 = nn.Linear(512 * 13 * 13, 1024)
-        self.fc2 = nn.Linear(1024, 500)
+        self.fc1 = nn.Linear(512*9, 2048)
+        self.fc2 = nn.Linear(2048, 500)
         self.dropout = nn.Dropout(p=0.5)
 
     def forward(self, x):
@@ -86,21 +82,21 @@ transform = transforms.Compose(
 train_dataset = ImageFolder(
     "./face_classification_500/train_sample", transform=transform
 )
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 dev_dataset = ImageFolder("./face_classification_500/dev_sample", transform=transform)
-dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
+dev_loader = DataLoader(dev_dataset, batch_size=64, shuffle=False)
 test_dataset = ImageFolder("./face_classification_500/test_sample", transform=transform)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 # 定义损失函数和优化器
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
 optimizer = optim.SGD(net.parameters(), lr=0.009)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
 train_loss = []
 
 # 训练模型
-for epoch in range(20):  # 多次循环数据集
+for epoch in range(100):  # 多次循环数据集
     net.train()
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
@@ -130,7 +126,7 @@ for epoch in range(20):  # 多次循环数据集
             print("[%d, %5d] loss: %.5f" % (epoch + 1, i + 1, running_loss / 10))
             running_loss = 0.0
     scheduler.step()
-    print(optimizer.state_dict()['param_groups'][0]['lr'])
+    print("lr = ", optimizer.state_dict()['param_groups'][0]['lr'])
     net.eval()
     correct = 0
     total = 0

@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 
 devicee = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 53 51
+# 
+# 相较于607，608加大网络结构
 
 # 定义卷积神经网络模型
 class Net(nn.Module):
@@ -34,12 +35,12 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
             nn.BatchNorm2d(512),
         )
-        # self.conv5 = nn.Sequential(
-        #     nn.Conv2d(512, 2048, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(2048)
-        # )
-        # self.conv6 = nn.Sequential(
-        #     nn.Conv2d(2048, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
-        # )
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(512, 1024, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(2048)
+        )
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(1024, 2048, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(2048)
+        )
         # self.conv7 = nn.Sequential(
         #     nn.Conv2d(4096, 8192, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(8192)
         # )
@@ -49,8 +50,8 @@ class Net(nn.Module):
         # self.conv9 = nn.Sequential(
         #     nn.Conv2d(16384, 32768, 3, 1, 1), nn.ReLU(), nn.MaxPool2d(2),nn.BatchNorm2d(32768)
         # )
-        self.fc1 = nn.Linear(512 * 13 * 13, 1024)
-        self.fc2 = nn.Linear(1024, 500)
+        self.fc1 = nn.Linear(2048 * 13 * 13, 2048)
+        self.fc2 = nn.Linear(2048, 500)
         self.dropout = nn.Dropout(p=0.5)
 
     def forward(self, x):
@@ -58,8 +59,8 @@ class Net(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv4(x)
-        # x = self.conv5(x)
-        # x = self.conv6(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
         # x = self.conv7(x)
         # x = self.conv8(x)
         # x = self.conv9(x)
@@ -130,7 +131,7 @@ for epoch in range(20):  # 多次循环数据集
             print("[%d, %5d] loss: %.5f" % (epoch + 1, i + 1, running_loss / 10))
             running_loss = 0.0
     scheduler.step()
-    print(optimizer.state_dict()['param_groups'][0]['lr'])
+    print("lr = ", optimizer.state_dict()['param_groups'][0]['lr'])
     net.eval()
     correct = 0
     total = 0
