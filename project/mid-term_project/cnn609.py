@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+# from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 devicee = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -92,8 +92,11 @@ test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
 optimizer = optim.SGD(net.parameters(), lr=0.009)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, step_size=4, gamma=0.9)
 train_loss = []
+dev_acc = []
+test_acc = []
+
 
 # 训练模型
 for epoch in range(100):  # 多次循环数据集
@@ -140,6 +143,7 @@ for epoch in range(100):  # 多次循环数据集
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     print("Accuracy of the network on the dev images: %d %%" % (100 * correct / total))
+    dev_acc.append((100 * correct / total))
 
     correct = 0
     total = 0
@@ -152,11 +156,24 @@ for epoch in range(100):  # 多次循环数据集
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
     print("Accuracy of the network on the test images: %d %%" % (100 * correct / total))
+    test_acc.append((100 * correct / total))
+
 
 plt.plot(train_loss)
 plt.title("training loss")
 plt.xlabel("Iterations")
 plt.ylabel("Loss")
+plt.show()
+
+plt.plot(dev_acc)
+plt.title("dev acc")
+plt.xlabel("Iterations")
+plt.ylabel("dev acc")
+plt.show()
+
+plt.plot(test_acc)
+plt.title("test acc")
+plt.xlabel("Iterations")
+plt.ylabel("test acc")
 plt.show()
