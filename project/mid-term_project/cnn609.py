@@ -88,19 +88,19 @@ transform = transforms.Compose(
 train_dataset = ImageFolder(
     "./face_classification_500/train_sample", transform=transform
 )
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 dev_dataset = ImageFolder("./face_classification_500/dev_sample", transform=transform)
-dev_loader = DataLoader(dev_dataset, batch_size=64, shuffle=False)
+dev_loader = DataLoader(dev_dataset, batch_size=32, shuffle=False)
 test_dataset = ImageFolder("./face_classification_500/test_sample", transform=transform)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # 定义损失函数和优化器
 net = Net().to(devicee)
 criterion = nn.CrossEntropyLoss().to(devicee)
-optimizer = optim.SGD(net.parameters(), lr=0.007)
+optimizer = optim.SGD(net.parameters(), lr=0.009)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer,
-    factor=0.7,
+    factor=0.98,
     patience=10,
     verbose=False,
     threshold=0.0001,
