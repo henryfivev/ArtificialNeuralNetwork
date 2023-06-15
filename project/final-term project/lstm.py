@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import nltk
 from nltk.translate.bleu_score import sentence_bleu, corpus_bleu
+import torch.nn.utils.rnn as rnn_utils
 
 class TranslationDataset(Dataset):
     def __init__(self, source_path, target_path, max_length=None):
@@ -44,6 +45,21 @@ class TranslationDataset(Dataset):
         source_indices = self.source_indices[index]
         target_indices = self.target_indices[index]
         return source_indices, target_indices
+
+def collate_fn(batch):
+    # Sort the batch in descending order of source sentence length
+    batch = sorted(batch, key=lambda x: len(x[0]), reverse=True)
+
+    # Separate the source and target sentences
+    source_sentences, target_sentences = zip(*batch)
+
+    # Pad the source sentences to have the same length
+    source_sentences_padded = pad_sequence(source_sentences, batch_first=True)
+
+    # Pad the target sentences to have the same length
+    target_sentences_padded = pad_sequence(target_sentences, batch_first=True)
+
+    return source_sentences_padded, target_sentences_padded
     
 class TranslatorAttention(nn.Module):
     def __init__(self, input_dim, embedding_dim, hidden_dim, output_dim):
@@ -58,10 +74,16 @@ class TranslatorAttention(nn.Module):
         output, (hidden, cell) = self.lstm(embedded)
         hidden_concat = torch.cat((hidden[-2], hidden[-1]), dim=1)
         attention_weights = torch.softmax(self.attention(hidden_concat), dim=1)
-        context_vector = torch.bmm(output.permute(1, 2, 0), attention_weights.unsqueeze(2)).squeeze(2)
+        print(attention_weights.shape)
+        print(output.shape)
+        context_vector = torch.bmm(attention_weights.unsqueeze(2), output.permute(0, 2, 1)).squeeze(2)
+
         prediction = self.fc(context_vector)
         return prediction
     
+def pad_sequence(sequences, batch_first=False, padding_value=0):
+    return torch.nn.utils.rnn.pad_sequence([torch.tensor(seq) for seq in sequences], batch_first=batch_first, padding_value=padding_value)
+
 def evaluate(model, iterator, criterion):
     model.eval()
     epoch_loss = 0
@@ -110,12 +132,12 @@ def calculate_bleu_score(model, iterator, target_vocab):
     bleu_score = corpus_bleu([[reference] for reference in references], hypotheses)
     return bleu_score
 
-source_file = 'train_ch.txt'
-target_file = 'train_en.txt'
-val_source_file = 'val_ch.txt'
-val_target_file = 'val_en.txt'
-test_source_file = 'test_ch.txt'
-test_target_file = 'test_en.txt'
+source_file = './data/train_ch.txt'
+target_file = './data/train_en.txt'
+val_source_file = './data/val_ch.txt'
+val_target_file = './data/val_en.txt'
+test_source_file = './data/test_ch.txt'
+test_target_file = './data/test_en.txt'
 
 max_length = 100
 embedding_dim = 256
@@ -123,24 +145,24 @@ hidden_dim = 512
 batch_size = 32
 num_epochs = 10
 learning_rate = 0.001
-
+print("init arg")
 dataset = TranslationDataset(source_file, target_file, max_length)
 val_dataset = TranslationDataset(val_source_file, val_target_file, max_length)
 test_dataset = TranslationDataset(test_source_file, test_target_file, max_length)
-
-train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
+print("get dataset")
+train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+print("load data")
 input_dim = len(dataset.source_vocab)
 output_dim = len(dataset.target_vocab)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+print("device: ", device)
 model = TranslatorAttention(input_dim, embedding_dim, hidden_dim, output_dim).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss(ignore_index=dataset.target_vocab['<PAD>'])
-
+print("create model, optimizer and loss function")
 best_valid_loss = float('inf')
 
 for epoch in range(num_epochs):
