@@ -1,0 +1,14 @@
+name: pytorch_nmt
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.8
+  - pytorch=1.6
+  - torchvision
+  - numpy
+  - nltk
+  - ipython
+  - docopt
+  - pip:
+    - tqdm
