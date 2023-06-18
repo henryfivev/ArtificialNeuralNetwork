@@ -277,6 +277,44 @@ class NMT(nn.Module):
 
         return ctx_vec, softmaxed_att_weight
 
+    def additive_attention(self, h_t: torch.Tensor, src_encoding: torch.Tensor, src_encoding_att_linear: torch.Tensor,
+                        mask: torch.Tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
+        # (batch_size, src_sent_len, hidden_size)
+        att_input = torch.cat([src_encoding_att_linear.unsqueeze(1).expand(-1, src_encoding.size(1), -1),
+                            h_t.unsqueeze(1).expand(-1, src_encoding.size(1), -1)], dim=-1)
+
+        # (batch_size, src_sent_len)
+        att_weight = self.att_vec_linear(torch.tanh(att_input)).squeeze(2)
+
+        if mask is not None:
+            att_weight.data.masked_fill_(mask.bool(), -float('inf'))
+
+        softmaxed_att_weight = F.softmax(att_weight, dim=-1)
+
+        # (batch_size, 1, src_sent_len)
+        att_view = (att_weight.size(0), 1, att_weight.size(1))
+        # (batch_size, hidden_size)
+        ctx_vec = torch.bmm(softmaxed_att_weight.view(*att_view), src_encoding).squeeze(1)
+
+        return ctx_vec, softmaxed_att_weight
+
+    def multiplicative_attention(self, h_t: torch.Tensor, src_encoding: torch.Tensor, src_encoding_att_linear: torch.Tensor,
+                                mask: torch.Tensor = None) -> Tuple[torch.Tensor, torch.Tensor]:
+        # (batch_size, src_sent_len)
+        att_weight = torch.bmm(src_encoding_att_linear, h_t.unsqueeze(2)).squeeze(2)
+
+        if mask is not None:
+            att_weight.data.masked_fill_(mask.bool(), -float('inf'))
+
+        softmaxed_att_weight = F.softmax(att_weight, dim=-1)
+
+        # (batch_size, 1, src_sent_len)
+        att_view = (att_weight.size(0), 1, att_weight.size(1))
+        # (batch_size, hidden_size)
+        ctx_vec = torch.bmm(softmaxed_att_weight.view(*att_view), src_encoding).squeeze(1)
+
+        return ctx_vec, softmaxed_att_weight
+
     def beam_search(self, src_sent: List[str], beam_size: int=5, max_decoding_time_step: int=70) -> List[Hypothesis]:
         """
         Given a single source sentence, perform beam search
